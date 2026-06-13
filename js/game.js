@@ -14,6 +14,14 @@ class CandylandGame {
         
         this.initializeUI();
         this.attachEventListeners();
+        this.setupResizeListener();
+    }
+
+    setupResizeListener() {
+        window.addEventListener('resize', () => {
+            this.board.resizeCanvas();
+            this.draw();
+        });
     }
 
     initializeUI() {
@@ -99,6 +107,7 @@ class CandylandGame {
             this.soundManager.playSound('win');
             this.gameMessageDisplay.textContent = `🏆 ${currentPlayer.name} reached Candy Castle and WON! 🎉`;
             this.endGame();
+            this.draw();
             return;
         }
 
@@ -110,7 +119,6 @@ class CandylandGame {
         if (this.turn >= this.maxTurns) {
             this.gameMessageDisplay.textContent = '❌ Max turns reached. Game Over!';
             this.endGame();
-            return;
         }
 
         this.updateUI();
@@ -138,6 +146,7 @@ class CandylandGame {
         this.soundManager.muted = false;
         
         this.board.initializeTiles();
+        this.board.updateTilePositions();
         this.draw();
     }
 
@@ -159,7 +168,7 @@ class CandylandGame {
             playerDiv.className = 'player-item';
             playerDiv.innerHTML = `
                 <span class="player-name">${status.name}</span>
-                <span class="player-position">Position: ${status.position}/100</span>
+                <span class="player-position">${status.position}/100</span>
             `;
             this.playersList.appendChild(playerDiv);
         });
