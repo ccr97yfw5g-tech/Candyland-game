@@ -1,90 +1,56 @@
-// Sound Manager - Handles all game audio
 class SoundManager {
     constructor() {
-        this.sounds = {};
-        this.isMuted = false;
-        this.volume = 0.7;
-        this.initSounds();
+        this.muted = false;
+        this.volume = 0.5;
     }
 
-    initSounds() {
-        // Create audio context
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Create oscillators for sound effects
-        this.createAllSounds();
-    }
+    playSound(type) {
+        if (this.muted) return;
 
-    createAllSounds() {
-        // These will use Web Audio API to create sounds programmatically
-        this.sounds = {
-            diceRoll: () => this.playTone(400, 0.1),
-            moveSuccess: () => this.playTone(800, 0.15),
-            powerUpCollect: () => this.playTone(1200, 0.2),
-            trapHit: () => this.playTone(200, 0.25),
-            candyCollect: () => this.playTone(600, 0.12),
-            gameWin: () => this.playWinSound(),
-            buttonClick: () => this.playTone(500, 0.08)
-        };
-    }
-
-    playTone(frequency, duration) {
-        if (this.isMuted) return;
-
-        const now = this.audioContext.currentTime;
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-
-        oscillator.frequency.value = frequency;
-        oscillator.type = 'sine';
-
-        gainNode.gain.setValueAtTime(this.volume, now);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
-
-        oscillator.start(now);
-        oscillator.stop(now + duration);
-    }
-
-    playWinSound() {
-        if (this.isMuted) return;
-
-        const now = this.audioContext.currentTime;
-        const frequencies = [523, 659, 784, 1047]; // C, E, G, C (higher octave)
-
-        frequencies.forEach((freq, index) => {
-            const oscillator = this.audioContext.createOscillator();
-            const gainNode = this.audioContext.createGain();
+        // Using Web Audio API for sound effects
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
 
             oscillator.connect(gainNode);
-            gainNode.connect(this.audioContext.destination);
+            gainNode.connect(audioContext.destination);
+            gainNode.gain.setValueAtTime(this.volume, audioContext.currentTime);
 
-            oscillator.frequency.value = freq;
-            oscillator.type = 'sine';
-
-            const startTime = now + index * 0.15;
-            gainNode.gain.setValueAtTime(this.volume, startTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
-
-            oscillator.start(startTime);
-            oscillator.stop(startTime + 0.5);
-        });
-    }
-
-    play(soundName) {
-        if (this.sounds[soundName]) {
-            this.sounds[soundName]();
+            switch (type) {
+                case 'dice':
+                    oscillator.frequency.value = 800;
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                    break;
+                case 'move':
+                    oscillator.frequency.value = 600;
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                    break;
+                case 'win':
+                    oscillator.frequency.value = 1000;
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                    break;
+                case 'trap':
+                    oscillator.frequency.value = 200;
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                case 'bonus':
+                    oscillator.frequency.value = 900;
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                    break;
+            }
+        } catch (e) {
+            console.log('Audio not available');
         }
     }
 
-    toggleMute() {
-        this.isMuted = !this.isMuted;
-        return this.isMuted;
-    }
-
-    setVolume(level) {
-        this.volume = Math.max(0, Math.min(1, level));
+    toggle() {
+        this.muted = !this.muted;
+        return this.muted;
     }
 }
